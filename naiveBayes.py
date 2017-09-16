@@ -6,11 +6,11 @@ class NaiveBayes(object):
     def __init__(self):
         self._train_x = []
         self._train_y = []
-        self._tags = set()
+        self._tags = set() #所有可能的分类
         self._prioriprob = {} #记录每类的先验概率值
         self._trainsetSize = 0
         self._dim = 0 # 数据维度
-        self._conditionprob = [] # 所有维度的条件概率
+        self._conditionprob = [] # 所有维度的条件概率 某一属性的条件概率表示P(xi|ck) {xi:{ck:p}}
         pass
 
     #计算先验概率
@@ -19,7 +19,7 @@ class NaiveBayes(object):
         for item in self._tags:
             self._prioriprob.update({item: self._train_y.count(item)*1.0/self._trainsetSize})
     
-    #计算条件概率P(xi|ck) = I(xi,ck) / I(ck)
+    #计算条件概率P(xi|ck) = N(xi,ck) / N(ck)
     def _compute_ConditionProbability(self):
         
         for i in range(self._dim):
@@ -61,9 +61,34 @@ class NaiveBayes(object):
         self._compute_ConditionProbability() 
         pass
         
-
+    # y = argmax (P(ck) II(P(xi,ck)))
     def predict(self, test_x):
         result = []
+        #print self._conditionprob
+        #print 'prioriprob'
+        #print self._prioriprob
         for i in range(len(test_x)):
-            pass
+            max_prob = 0
+            t_ck = ''
+            prob = 1
+            for ck in self._tags:
+                for xi in range(self._dim):
+                    #print i,xi , test_x[i][xi],ck
+                    if (self._conditionprob[xi].has_key(test_x[i][xi])):
+                        if (self._conditionprob[xi][test_x[i][xi]].has_key(ck)):
+                            prob*=self._conditionprob[xi][test_x[i][xi]][ck]
+                        else:
+                            prob = 0
+                    else:
+                        prob = 0
+                prob*= self._prioriprob[ck]
+                #print  ('sample:',test_x[i],' be',ck,'has ',prob,' probability')
+                if (prob > max_prob):
+                    max_prob = prob
+                    t_ck = ck
+                prob = 1
+            result.append(t_ck)
+            
+        return result
+            
         pass
