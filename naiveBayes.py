@@ -10,21 +10,24 @@ class NaiveBayes(object):
         self._prioriprob = {} #记录每类的先验概率值
         self._trainsetSize = 0
         self._dim = 0 # 数据维度
-        self._conditionprob = [] # 所有维度的条件概率 某一属性的条件概率表示P(xi|ck) {xi:{ck:p}}
+        self._conditionprob = [] # 所有维度的条件概率 某一属性的条件概率表示P(xi|ck) {xi:{ck:p}}\
+        self._lambda = 1 # 采用贝叶斯估计参数
+        self._S = [] #记录每种特征的种类数
         pass
 
     #计算先验概率
     def _compute_PrioriProbability(self):
         self._tags = set(self._train_y)
         for item in self._tags:
-            self._prioriprob.update({item: self._train_y.count(item)*1.0/self._trainsetSize})
+            self._prioriprob.update({item: (self._train_y.count(item)*1.0+self._lambda)/(self._trainsetSize+self._lambda*len(self._tags))})
     
     #计算条件概率P(xi|ck) = N(xi,ck) / N(ck)
     def _compute_ConditionProbability(self):
-        
+
+
         for i in range(self._dim):
             self._conditionprob.append({})
-
+            self._S.append(len(set([x[i] for x in self._train_x])))
         for i in range(self._dim):
             tmp = {}
             for j in range(self._trainsetSize):
@@ -40,9 +43,9 @@ class NaiveBayes(object):
                 for item2 in tmp[item]:
                     #print 'i:',i,item,item2,tmp[item][item2]
                     if (self._conditionprob[i].has_key(item)):
-                        self._conditionprob[i][item].update({item2:tmp[item][item2]*1.0/self._train_y.count(item2)})
+                        self._conditionprob[i][item].update({item2:(tmp[item][item2]+self._lambda)*1.0/(self._train_y.count(item2)+self._lambda*self._S[i])})
                     else:
-                        self._conditionprob[i].update({item:{item2:tmp[item][item2]*1.0/self._train_y.count(item2)}})
+                        self._conditionprob[i].update({item:{item2:(tmp[item][item2]+self._lambda)*1.0/(self._train_y.count(item2)+self._lambda*self._S[i])}})
 
         #print self._conditionprob
 
@@ -74,20 +77,22 @@ class NaiveBayes(object):
             for ck in self._tags:
                 for xi in range(self._dim):
                     #print i,xi , test_x[i][xi],ck
+
                     if (self._conditionprob[xi].has_key(test_x[i][xi])):
                         if (self._conditionprob[xi][test_x[i][xi]].has_key(ck)):
                             prob*=self._conditionprob[xi][test_x[i][xi]][ck]
                         else:
-                            prob = 0
+                            prob *= self._lambda*1.0/(self._train_y.count(ck)+self._S[xi]*self._lambda)
                     else:
-                        prob = 0
+                        prob *= self._lambda*1.0/(self._train_y.count(ck)+self._S[xi]*self._lambda)
                 prob*= self._prioriprob[ck]
                 #print  ('sample:',test_x[i],' be',ck,'has ',prob,' probability')
-                if (prob > max_prob):
+                if (prob >= max_prob):
                     max_prob = prob
                     t_ck = ck
                 prob = 1
-            result.append(t_ck)
+            if (t_ck !=''):
+                result.append(t_ck)
             
         return result
             
