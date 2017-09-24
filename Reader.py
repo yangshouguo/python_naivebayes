@@ -56,6 +56,7 @@ class Reader():
                 tag = line_list[0]
                 self._trainy.append(tag)
                 features = line_list[1].split(' ')
+                features = features[:len(features)-1]
                 for item in features:
                     if self._trainx[i].has_key(item):
                         self._trainx[i][item] += 1
