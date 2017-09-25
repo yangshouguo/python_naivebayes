@@ -44,7 +44,8 @@ class Reader():
     def read_dic(self,filename):
 
 
-
+        self._trainx = []
+        self._trainy = []
         file = open(filename)
 
         if file :
@@ -52,17 +53,18 @@ class Reader():
             i = 0
             for line in lines:
                 self._trainx.append({})
-                line_list = line.split('\t')
+                line_list = line.strip().split('\t')
                 tag = line_list[0]
                 self._trainy.append(tag)
-                features = line_list[1].split(' ')
-                features = features[:len(features)-1]
+                features = line_list[1].strip().split(' ')
+                # features = features[:len(features)-1]
                 for item in features:
                     if self._trainx[i].has_key(item):
                         self._trainx[i][item] += 1
                     else:
                         self._trainx[i].update({item:1})
                 i += 1
+            # print len(self._trainx),len(self._trainy)
 
             return self._trainx,self._trainy
 

@@ -4,7 +4,7 @@ r = Reader()
 
 train_x,train_y = r.read_dic('r8-train-stemmed.txt')
 test_x,test_y = r.read_dic('r8-test-stemmed.txt')
-
+# print len(train_x),len(train_y)
 nb = NaiveBayes()
 nb.fit(train_x,train_y)
 py = nb.predict_varfeature(test_x)
